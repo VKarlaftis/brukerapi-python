@@ -40,16 +40,16 @@ DEFAULT_STATES = {
         "load": LOAD_STAGES["all"],
         "mmap": False,
     },
-    'fid_proc': {
-        "parameter_files" : ['acqp', 'method'],
-        "property_files": [Path(__file__).parents[0] / 'config/properties_fid_core.json', Path(__file__).parents[0] / 'config/properties_fid_custom.json'],
-        "load": LOAD_STAGES['all'],
-        "mmap": False
+    "fid_proc": {
+        "parameter_files": ["acqp", "method"],
+        "property_files": [Path(__file__).parents[0] / "config/properties_fid_core.json", Path(__file__).parents[0] / "config/properties_fid_custom.json"],
+        "load": LOAD_STAGES["all"],
+        "mmap": False,
     },
-    '2dseq': {
-        "parameter_files": ['visu_pars'],
-        "property_files": [Path(__file__).parents[0] / 'config/properties_2dseq_core.json', Path(__file__).parents[0] / 'config/properties_2dseq_custom.json'],
-        "load": LOAD_STAGES['all'],
+    "2dseq": {
+        "parameter_files": ["visu_pars"],
+        "property_files": [Path(__file__).parents[0] / "config/properties_2dseq_core.json", Path(__file__).parents[0] / "config/properties_2dseq_custom.json"],
+        "load": LOAD_STAGES["all"],
         "scale": True,
         "mmap": False,
     },
@@ -263,8 +263,8 @@ class Dataset:
             raise UnsuportedDatasetType(self.type)
 
         # Check whether all necessary JCAMP-DX files are present
-        if self._state.get('load') >= LOAD_STAGES['parameters']:
-            for i in DEFAULT_STATES[self.type]['parameter_files']:
+        if self._state.get("load") >= LOAD_STAGES["parameters"]:
+            for i in DEFAULT_STATES[self.type]["parameter_files"]:
                 param_path = self.path.parent / RELATIVE_PATHS[self.type][i]
                 if i not in set(os.listdir(str(param_path.parent))):
                     raise IncompleteDataset
@@ -567,7 +567,7 @@ class Dataset:
         """
         # TODO debug with this
         try:
-            assert os.stat(str(path)).st_size >= np.prod(shape) * dtype.itemsize
+            assert os.stat(str(path)).st_size == np.prod(shape) * dtype.itemsize
         except AssertionError:
             raise ValueError("Dimension mismatch") from AssertionError
         return np.array(np.memmap(path, dtype=dtype, shape=shape, order="F")[:])
