@@ -15,6 +15,7 @@ from .exceptions import (
     DatasetTypeMissmatch,
     FilterEvalFalse,
     IncompleteDataset,
+    InvalidDataset,
     NotADatasetDir,
     ParametersNotLoaded,
     PropertyConditionNotMet,
@@ -269,7 +270,6 @@ class Dataset:
                 if i not in set(os.listdir(str(param_path.parent))):
                     raise IncompleteDataset
 
-
     def load(self):
         """
         Load parameters, properties, schema and data. In case, there is a traj file related to a fid file,
@@ -291,7 +291,7 @@ class Dataset:
 
         self.load_schema()
         self.load_data()
-        # self.load_traj()
+        self.load_traj()
 
     def unload(self):
         """
@@ -401,7 +401,7 @@ class Dataset:
     def unload_properties(self):
         for property in self._properties:
             if hasattr(self, property):
-                delattr(self,property)
+                delattr(self, property)
         self._properties = []
         self._state["load_properties"] = False
 
@@ -565,11 +565,12 @@ class Dataset:
         -------
         1D ndarray containing the full data vector
         """
-        # TODO debug with this
+
         try:
             assert os.stat(str(path)).st_size == np.prod(shape) * dtype.itemsize
         except AssertionError:
-            raise ValueError("Dimension mismatch") from AssertionError
+            raise InvalidDataset("Invalid dataset, dimension mismatch") from AssertionError
+
         return np.array(np.memmap(path, dtype=dtype, shape=shape, order="F")[:])
 
     def _write_data(self, path):
@@ -587,9 +588,10 @@ class Dataset:
 
     def load_traj(self, **kwargs):
         if Path(self.path.parent / "traj").exists() and self.type != "traj":
-            self._traj = Dataset(self.path.parent / "traj", load=False, random_access=self.random_access)
+            self._traj = Dataset(self.path.parent / "traj", load=LOAD_STAGES["empty"])
             self._traj._parameters = self.parameters
-            self._traj._schema = SchemaTraj(self._traj, meta=self.schema._meta, sub_params=self.schema._sub_params, fid=self)
+            self._traj.load_properties()
+            self._traj._schema = SchemaTraj(self._traj)
             self._traj.load_data()
         else:
             self._traj = None
